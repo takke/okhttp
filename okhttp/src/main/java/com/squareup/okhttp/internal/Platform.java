@@ -57,6 +57,8 @@ import static com.squareup.okhttp.internal.Internal.logger;
 public class Platform {
   private static final Platform PLATFORM = findPlatform();
 
+  public static boolean alpnEnabled = true;
+
   public static Platform get() {
     return PLATFORM;
   }
@@ -273,6 +275,10 @@ public class Platform {
 
     @Override public void configureTlsExtensions(
         SSLSocket sslSocket, String hostname, List<Protocol> protocols) {
+      if (!alpnEnabled) {
+        return;
+      }
+
       List<String> names = new ArrayList<>(protocols.size());
       for (int i = 0, size = protocols.size(); i < size; i++) {
         Protocol protocol = protocols.get(i);
@@ -298,6 +304,10 @@ public class Platform {
 
     @Override public String getSelectedProtocol(SSLSocket socket) {
       try {
+        if (!alpnEnabled) {
+          return null;
+        }
+
         JettyNegoProvider provider =
             (JettyNegoProvider) Proxy.getInvocationHandler(getMethod.invoke(null, socket));
         if (!provider.unsupported && provider.selected == null) {
